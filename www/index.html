@@ -346,7 +346,7 @@ c.globalAlpha=1}
 /* SHADED HUMANOID RENDERER
    Filled joint-driven mannequin + low-opacity glyph pass. This keeps the body
    readable; the ASCII effect is a surface treatment rather than the body itself. */
-const LT=()=>document.documentElement.dataset.m==='1',hO=()=>LT()?'#f3eee3':hO(),hB=n=>LT()?0:n;
+const LT=()=>document.documentElement.dataset.m==='1',hO=()=>LT()?'#f3eee3':'#000',hB=n=>LT()?0:n;
 function hMix(a,b,u){return[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u]}
 function hVec(a,b){const x=b[0]-a[0],y=b[1]-a[1],m=Math.hypot(x,y)||1;return[x/m,y/m]}
 function hPerp(v){return[-v[1],v[0]]}
