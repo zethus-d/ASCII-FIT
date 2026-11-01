@@ -15,7 +15,8 @@ body{background:var(--bg) linear-gradient(var(--grid) 1px,transparent 1px) 0 0/2
 pre{margin:0;font:inherit;letter-spacing:inherit}
 .top{display:flex;justify-content:space-between;color:var(--dim)}
 .hud{position:relative;padding:16px 12px;background:linear-gradient(var(--fg),var(--fg)) 0 0/20px 1px,linear-gradient(var(--fg),var(--fg)) 0 0/1px 20px,linear-gradient(var(--fg),var(--fg)) 100% 0/20px 1px,linear-gradient(var(--fg),var(--fg)) 100% 0/1px 20px,linear-gradient(var(--fg),var(--fg)) 0 100%/20px 1px,linear-gradient(var(--fg),var(--fg)) 0 100%/1px 20px,linear-gradient(var(--fg),var(--fg)) 100% 100%/20px 1px,linear-gradient(var(--fg),var(--fg)) 100% 100%/1px 20px;background-repeat:no-repeat}
-.hud{max-width:460px;margin-left:auto;margin-right:auto}.hud canvas{display:block;width:100%;max-width:none;aspect-ratio:1;margin:0 auto}
+.hud{max-width:460px;margin-left:auto;margin-right:auto}
+.pv{display:flex;flex-direction:column}.pvi{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;padding:8px 0}pre.pvx{margin:0;font-size:10px;line-height:1.05;letter-spacing:0;white-space:pre;color:var(--fg);text-shadow:0 0 5px var(--fg);text-align:left}.pvm{display:flex;flex-direction:column;gap:2px;min-width:0}.pvn{font-weight:700;overflow-wrap:anywhere}.pvs{color:var(--dim);font-size:11px}.pvk{color:var(--dim);font-size:11px}.pvr{padding-left:12px;color:var(--dim);font-size:10px;line-height:1.1}.hud canvas{display:block;width:100%;max-width:none;aspect-ratio:1;margin:0 auto}
 .tl{position:absolute;top:14px;left:14px;white-space:pre;line-height:1.2}
 .bl{position:absolute;bottom:12px;left:12px;white-space:pre;padding:5px 8px;font-size:11px;line-height:1.3;border-left:1px solid var(--fg);border-bottom:1px solid var(--fg)}
 .ico{position:absolute;top:14px;right:14px;width:16px;height:14px;border:1px solid var(--fg);background:repeating-linear-gradient(var(--fg) 0 1px,transparent 1px 3px)}
@@ -161,6 +162,8 @@ html[data-m="1"] .nart{text-shadow:none}
 #lrn .lsection{font-size:10px;letter-spacing:.16em;color:var(--dim);border-bottom:1px solid color-mix(in srgb,var(--fg) 25%,transparent);padding-bottom:5px}
 @media(max-width:360px){#lrn .lcontrols{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+html[data-m="1"] *,html[data-m="1"] *::before,html[data-m="1"] *::after{text-shadow:none!important;box-shadow:none!important;filter:none!important}
+html[data-m="1"] body::after{display:none}
 </style></head>
 <body><main id="app"></main>
 <script>
@@ -343,6 +346,7 @@ c.globalAlpha=1}
 /* SHADED HUMANOID RENDERER
    Filled joint-driven mannequin + low-opacity glyph pass. This keeps the body
    readable; the ASCII effect is a surface treatment rather than the body itself. */
+const LT=()=>document.documentElement.dataset.m==='1',hO=()=>LT()?'#f3eee3':hO(),hB=n=>LT()?0:n;
 function hMix(a,b,u){return[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u]}
 function hVec(a,b){const x=b[0]-a[0],y=b[1]-a[1],m=Math.hypot(x,y)||1;return[x/m,y/m]}
 function hPerp(v){return[-v[1],v[0]]}
@@ -352,16 +356,16 @@ function hLimb(c,a,b,w,C,alpha=1){
  c.save();c.globalAlpha=alpha;c.lineCap='round';c.lineJoin='round';
  const g=c.createLinearGradient(a[0]-w*.55,a[1]-w*.4,b[0]+w*.35,b[1]+w*.55);
  g.addColorStop(0,C.fg);g.addColorStop(.38,C.dim);g.addColorStop(.76,'#17251a');g.addColorStop(1,C.fg);
- c.shadowColor=C.fg;c.shadowBlur=10;c.strokeStyle='#020603';c.lineWidth=w+7;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
- c.shadowBlur=5;c.strokeStyle=g;c.lineWidth=w;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
- c.shadowBlur=0;c.globalAlpha=alpha*.38;c.strokeStyle=C.fg;c.lineWidth=Math.max(2,w*.18);c.beginPath();c.moveTo(a[0]-w*.12,a[1]-w*.12);c.lineTo(b[0]-w*.12,b[1]-w*.12);c.stroke();
+ c.shadowColor=C.fg;c.shadowBlur=hB(10);c.strokeStyle=hO();c.lineWidth=w+7;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
+ c.shadowBlur=hB(5);c.strokeStyle=g;c.lineWidth=w;c.beginPath();c.moveTo(...a);c.lineTo(...b);c.stroke();
+ c.shadowBlur=0;c.globalAlpha=alpha*.38;c.strokeStyle=LT()?'#fff':C.fg;c.lineWidth=Math.max(2,w*.18);c.beginPath();c.moveTo(a[0]-w*.12,a[1]-w*.12);c.lineTo(b[0]-w*.12,b[1]-w*.12);c.stroke();
  c.restore()
 }
 function hTorso(c,sh,hip,n,C){
  const a=hAdd(sh,n,29),b=hAdd(sh,n,-29),d=hAdd(hip,n,-21),e=hAdd(hip,n,21);
  const g=c.createLinearGradient(sh[0]-25,sh[1],hip[0]+25,hip[1]);g.addColorStop(0,C.fg);g.addColorStop(.38,C.dim);g.addColorStop(.72,'#142018');g.addColorStop(1,C.fg);
- c.save();c.shadowColor=C.fg;c.shadowBlur=16;c.fillStyle='#020603';c.strokeStyle='#020603';c.lineWidth=9;c.beginPath();c.moveTo(...a);c.quadraticCurveTo(sh[0]+n[0]*31+7,sh[1]+10,b[0],b[1]);c.lineTo(...d);c.quadraticCurveTo(hip[0]-n[0]*24,hip[1]+10,e[0],e[1]);c.closePath();c.fill();
- c.shadowBlur=7;c.fillStyle=g;c.beginPath();c.moveTo(...a);c.quadraticCurveTo(sh[0]+n[0]*31,sh[1]+12,b[0],b[1]);c.lineTo(...d);c.quadraticCurveTo(hip[0]-n[0]*24,hip[1]+10,e[0],e[1]);c.closePath();c.fill();
+ c.save();c.shadowColor=C.fg;c.shadowBlur=hB(16);c.fillStyle=hO();c.strokeStyle=hO();c.lineWidth=9;c.beginPath();c.moveTo(...a);c.quadraticCurveTo(sh[0]+n[0]*31+7,sh[1]+10,b[0],b[1]);c.lineTo(...d);c.quadraticCurveTo(hip[0]-n[0]*24,hip[1]+10,e[0],e[1]);c.closePath();c.fill();
+ c.shadowBlur=hB(7);c.fillStyle=g;c.beginPath();c.moveTo(...a);c.quadraticCurveTo(sh[0]+n[0]*31,sh[1]+12,b[0],b[1]);c.lineTo(...d);c.quadraticCurveTo(hip[0]-n[0]*24,hip[1]+10,e[0],e[1]);c.closePath();c.fill();
  c.globalAlpha=.26;c.strokeStyle=C.fg;c.lineWidth=2;c.beginPath();c.moveTo(sh[0],sh[1]+15);c.lineTo(hip[0],hip[1]-10);c.stroke();
  c.restore()
 }
@@ -396,7 +400,7 @@ function hDumb(bx,c,d,C){const n=hPerp(d),a=Math.atan2(n[1],n[0]);bx.save();bx.t
 function hPlate(bx,c,r,C){bx.save();bx.fillStyle='#15221a';bx.strokeStyle=C.fg;bx.lineWidth=3;bx.beginPath();bx.arc(c[0],c[1],r,0,6.283);bx.fill();bx.stroke();bx.lineWidth=1.5;bx.beginPath();bx.arc(c[0],c[1],r*.62,0,6.283);bx.stroke();bx.fillStyle=C.fg;bx.beginPath();bx.arc(c[0],c[1],4,0,6.283);bx.fill();bx.restore()}
 function hPropsFront(bx,PR,P,Q,cv,C,floorY,ex,ph,el){bx.save();bx.lineCap='round';bx.lineJoin='round';const mid=hMix(Q[4],Q[6],.5);
 if(PR.towel||PR.cab){const x=PR.towel?cv([86,0])[0]+10:cv([92,0])[0],hy=cv([0,hHandAvgY(ex)])[1],H=[x,hy];bx.strokeStyle=hPc;bx.lineWidth=PR.towel?7:3;bx.globalAlpha=.95;bx.beginPath();bx.moveTo(...H);bx.lineTo(...Q[4]);bx.moveTo(...H);bx.lineTo(...Q[6]);bx.stroke();
-if(PR.towel){bx.strokeStyle='#020603';bx.lineWidth=1.5;bx.setLineDash([5,5]);bx.beginPath();bx.moveTo(...H);bx.lineTo(...Q[4]);bx.stroke();bx.setLineDash([])}else{bx.lineWidth=5;bx.strokeStyle=C.fg;bx.beginPath();bx.moveTo(Q[4][0]-3,Q[4][1]+9);bx.lineTo(Q[4][0]-3,Q[4][1]-9);bx.stroke()}}
+if(PR.towel){bx.strokeStyle=hO();bx.lineWidth=1.5;bx.setLineDash([5,5]);bx.beginPath();bx.moveTo(...H);bx.lineTo(...Q[4]);bx.stroke();bx.setLineDash([])}else{bx.lineWidth=5;bx.strokeStyle=C.fg;bx.beginPath();bx.moveTo(Q[4][0]-3,Q[4][1]+9);bx.lineTo(Q[4][0]-3,Q[4][1]-9);bx.stroke()}}
 if(PR.down){const p=cv([50,0]);bx.strokeStyle=hPc;bx.lineWidth=3;bx.globalAlpha=.95;bx.beginPath();bx.moveTo(p[0],p[1]+6);bx.lineTo(...mid);bx.stroke();bx.strokeStyle=C.fg;bx.lineWidth=6;bx.beginPath();bx.moveTo(mid[0]-26,mid[1]);bx.lineTo(mid[0]+26,mid[1]);bx.stroke()}
 bx.globalAlpha=1;
 if(PR.db){const hs=PR.gob?[mid]:PR.one?[Q[4]]:[Q[4],Q[6]],es=PR.gob?[hVec(Q[3],Q[4])]:PR.one?[hVec(Q[3],Q[4])]:[hVec(Q[3],Q[4]),hVec(Q[5],Q[6])];hs.forEach((h,i)=>hDumb(bx,h,PR.gob?[0,1]:es[i],C))}
@@ -412,10 +416,10 @@ function humanoid(c,buf,ex,elapsed,opts={}){
  const cv=p=>[22+p[0]*3.56,12+p[1]*3.56],Q=P.map(cv),floorY=12+ex.g*3.56;
  const bx=buf;bx.clearRect(0,0,W,W);
  // dark instrument-panel background and subtle perspective grid
- bx.fillStyle='#020503';bx.fillRect(0,0,W,W);bx.strokeStyle='rgba(115,190,125,.10)';bx.lineWidth=1;
+ bx.fillStyle=LT()?C.bg:'#020503';bx.fillRect(0,0,W,W);bx.strokeStyle=LT()?'rgba(0,0,0,.08)':'rgba(115,190,125,.10)';bx.lineWidth=1;
  for(let x=22;x<W;x+=28){bx.beginPath();bx.moveTo(x,18);bx.lineTo(x,W-20);bx.stroke()}
  for(let y=24;y<W;y+=28){bx.beginPath();bx.moveTo(12,y);bx.lineTo(W-12,y);bx.stroke()}
- const haze=bx.createRadialGradient(200,190,30,200,190,210);haze.addColorStop(0,'rgba(75,255,110,.09)');haze.addColorStop(1,'rgba(0,0,0,0)');bx.fillStyle=haze;bx.fillRect(0,0,W,W);
+ const haze=bx.createRadialGradient(200,190,30,200,190,210);haze.addColorStop(0,'rgba(75,255,110,.09)');haze.addColorStop(1,'rgba(0,0,0,0)');if(!LT()){bx.fillStyle=haze;bx.fillRect(0,0,W,W)}
  // ground shadow and baseline
  bx.save();bx.globalAlpha=.32;bx.fillStyle=C.fg;bx.beginPath();bx.ellipse(200,Math.min(374,floorY+12),104,8,0,0,Math.PI*2);bx.fill();bx.restore();
  bx.strokeStyle='rgba(140,220,145,.42)';bx.setLineDash([4,8]);bx.beginPath();bx.moveTo(28,floorY+5);bx.lineTo(372,floorY+5);bx.stroke();bx.setLineDash([]);
@@ -435,13 +439,13 @@ const PR=hPr(ex.n||'');hPropsBack(bx,PR,P,Q,cv,C,floorY,ex);
  // neck + head, with a subtle face profile
  const neck=hAdd(Q[0],hVec(Q[0],sh),13);hLimb(bx,neck,sh,15,C,1);
  const headGrad=bx.createRadialGradient(Q[0][0]-6,Q[0][1]-8,2,Q[0][0],Q[0][1],22);headGrad.addColorStop(0,C.fg);headGrad.addColorStop(.45,C.dim);headGrad.addColorStop(1,'#101a12');
- hCircle(bx,Q[0],18,headGrad,'#020603',5);hCircle(bx,Q[0],16,null,C.fg,1.2);
+ hCircle(bx,Q[0],18,headGrad,hO(),5);hCircle(bx,Q[0],16,null,C.fg,1.2);
  bx.save();bx.globalAlpha=.72;bx.fillStyle=C.fg;bx.beginPath();bx.arc(Q[0][0]+6,Q[0][1]-2,1.8,0,6.28);bx.fill();bx.restore();
  // near-side arms + legs
  hLimb(bx,hAdd(sh,normal,13),Q[3],20,C,1);hLimb(bx,Q[3],Q[4],15,C,1);
  hLimb(bx,hAdd(hip,normal,10),Q[7],29,C,1);hLimb(bx,Q[7],Q[8],20,C,1);
  // joints, hands and feet
- [Q[1],Q[2],Q[3],Q[4],Q[5],Q[6],Q[7],Q[9]].forEach((p,i)=>hCircle(bx,p,i===1||i===2?8:5,i===1||i===2?C.dim:'#16251a',C.fg,1.5));
+ [Q[1],Q[2],Q[3],Q[4],Q[5],Q[6],Q[7],Q[9]].forEach((p,i)=>hCircle(bx,p,i===1||i===2?8:5,i===1||i===2?C.dim:'#16251a',LT()?'#fff':C.fg,1.5));
  [Q[4],Q[6]].forEach((p,i)=>hCircle(bx,p,4,C.fg,null));
  [Q[8],Q[10]].forEach((p,i)=>{bx.save();bx.translate(p[0],p[1]);bx.rotate(.08);bx.fillStyle=C.dim;bx.strokeStyle=C.fg;bx.lineWidth=2;bx.beginPath();bx.ellipse(3,2,12,5,0,0,6.28);bx.fill();bx.stroke();bx.restore()});
  hPropsFront(bx,PR,P,Q,cv,C,floorY,ex,ph,elapsed);
@@ -452,7 +456,8 @@ const PR=hPr(ex.n||'');hPropsBack(bx,PR,P,Q,cv,C,floorY,ex);
  // tiny HUD marks in the scene
  bx.fillStyle=C.dim;bx.font='9px monospace';bx.fillText('FIG. 01 / FORM RIG',14,17);bx.textAlign='right';bx.fillText('MOTION '+Math.round(ph*100)+'%',386,17);bx.textAlign='left';
  // composite base, glyph shader, and CRT pass
- c.clearRect(0,0,W,W);c.drawImage(buf.canvas,0,0);hGlyphPass(c,buf,C,elapsed);
+ c.clearRect(0,0,W,W);c.drawImage(buf.canvas,0,0);if(!LT())hGlyphPass(c,buf,C,elapsed);
+ if(LT())return;
  c.save();c.strokeStyle='rgba(160,255,170,.08)';c.lineWidth=1;for(let y=3;y<W;y+=4){c.beginPath();c.moveTo(0,y);c.lineTo(W,y);c.stroke()}
  const sy=28+ph*330;c.fillStyle='rgba(120,255,150,.20)';c.fillRect(0,sy,W,1);
  const vignette=c.createRadialGradient(200,190,100,200,190,245);vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.42)');c.fillStyle=vignette;c.fillRect(0,0,W,W);c.restore();
@@ -462,7 +467,7 @@ let LN=null;
 function closeLearn(){const d=document.getElementById('lrn');if(d)d.remove();if(LN&&LN.pz&&R){R.paused=false;R.last=performance.now();const z=$('#pz');if(z)z.textContent='PAUSE'}LN=null}
 function learn(e){
 closeLearn();const ex=EX[e],nm=ex.n,k0=Object.keys(EX0).find(q=>EX0[q].n===nm),L=LIB.find(x=>x.n===nm),
-steps=(k0&&FAM[k0])?FAM[k0]:[TIP[nm]||'Move with control through the full range.',...GEN3],mu=k0&&INFO[k0]?INFO[k0][0]:RGM[nm]||TG[L&&L.tg]||'FULL BODY',d=document.createElement('div');d.id='lrn';
+steps=(k0&&FAM[k0])?FAM[k0]:[TIP[nm]||'Move with control through the full range.',...GEN3],mu=k0&&INFO[k0]?INFO[k0][0]:TG[L&&L.tg]||'FULL BODY',d=document.createElement('div');d.id='lrn';
 d.innerHTML=`<div class="ex">${nm}</div><div class="exs">MOVEMENT STUDY // HUMANOID RIG</div>
 <div class="lreadout"><span>RENDER <b>SHADED / GLYPH</b></span><span>VIEW <b>FORM CHECK</b></span></div>
 <section class="lstage"><canvas id="lcv" width="400" height="400" aria-label="Animated humanoid demonstrating ${nm}"></canvas></section>
@@ -500,63 +505,13 @@ legs:{n:'LEGS',ex:['squats','lunges','jacks','squats']},
 core:{n:'CORE',ex:['plank','climbers','plank','climbers']},
 cardio:{n:'CARDIO',ex:['burpees','highknees','jacks','climbers']},
 floor:{n:'FLOOR',ex:['bridge','situps','plank','wallsit']}};
-/* ---- personal regimen (from vault: 20 Training/Plan) ---- */
-KW.unshift(['PUSH UP','pushups'],['FRONT RAISE','lateral'],['TRICEP EXTENSION','press'],['PULL UP','pullup'],['DEAD HANG','deadhang'],['HAMSTRING CURL','legcurl'],['NORDIC','legcurl']);
-POSE.deadhang={...POSE.pullup,n:'DEAD HANG',b:POSE.pullup.a};
-const _hPr=hPr;hPr=N=>{const o=_hPr(N);if(/FRONT RAISE|TRICEP EXTENSION|REVERSE FLY|WRIST CURL/.test(N))o.db=true;if(/PULL UP|DEAD HANG/.test(N))o.pbar=true;return o};
-/* item: [name, sets, lo, hi, unit(r|s), cue, muscles]   stage: [name, lo, hi, perLeg, cue, muscles] */
-const REG={
-push:{n:'PUSH DAY',x:[
-['INCLINE PUSH UP',3,10,15,'r','Hands on a raised surface, body in one straight line. Elbows about 45 degrees, chest touches the surface every rep.','LOWER CHEST, TRICEPS'],
-['DEEP PUSH UP',3,8,12,'r','Hands on raised supports so the chest dips below hand level. Control the bottom stretch, no bouncing, core tight.','CHEST, TRICEPS, FRONT DELTS'],
-['DECLINE PUSH UP',3,8,15,'r','Feet raised, body in a straight line. Do not let your hips drop, full range with chest near the floor.','UPPER CHEST, FRONT DELTS'],
-['FRONT RAISE',3,10,12,'r','Slight bend in elbows, lift to eye level only. No body swing, slow lowering.','FRONT DELTS'],
-['OVERHEAD TRICEP EXTENSION',3,10,12,'r','Elbows point forward, do not flare. Lower behind your head until a deep stretch, ribs down.','TRICEPS']]},
-pull:{n:'PULL DAY',x:[
-['PULL UP',3,5,10,'r','Start from a dead hang, full range. Drive elbows down and back, chest toward the bar, lower for 3 seconds.','LATS, UPPER BACK, BICEPS, DELTS'],
-['SEATED REVERSE FLY',3,12,15,'r','Hinge forward, lead with your elbows not your hands. Squeeze shoulder blades lightly, no shrugging.','REAR DELTS'],
-['BICEP CURL',3,8,12,'r','Elbows stay next to your ribs, full stretch at the bottom, full squeeze at the top. Do not lean back.','BICEPS'],
-['HAMMER CURL',3,8,12,'r','Palms face each other the whole rep, elbows pinned to your sides, slow 3 second lowering.','BICEPS, BRACHIALIS, FOREARMS'],
-['DEAD HANG',3,20,45,'s','Full grip, thumbs wrapped around the bar. Shoulders slightly active, breathe normally, do not swing.','FOREARM GRIP, LATS, SHOULDERS'],
-['WRIST CURL',3,12,15,'r','Forearms rest on thighs, palms up. Let the weight roll to your fingertips, curl back up, full range, slow.','FOREARM FLEXORS'],
-['REVERSE WRIST CURL',3,12,15,'r','Palms down, forearms supported. Lift knuckles toward the ceiling, lower slowly, lighter than wrist curls.','FOREARM EXTENSORS']]},
-legs:{n:'LEGS DAY',x:['@sq','@ha','@ca',
-['CRUNCH',3,15,20,'r','Lift your shoulder blades, do not pull on your neck. Exhale hard at the top, slow lowering.','UPPER ABS'],
-['LEG RAISE',3,10,15,'r','Lower back pressed to the floor, slow lowering. Bend your knees if your back arches.','LOWER ABS, HIP FLEXORS']]}};
-const CH={
-sq:{n:'SQUAT',st:[
-['ASSISTED SQUAT',12,15,0,'Hold a pole or door frame for balance, go as deep as you can control.','QUADS, GLUTES'],
-['BODYWEIGHT SQUAT',15,20,0,'Full depth, heels flat, chest up.','QUADS, GLUTES'],
-['PAUSE SQUAT',8,12,0,'3 second pause at the bottom, no bouncing.','QUADS, GLUTES'],
-['REVERSE LUNGE',8,10,1,'Step back, back knee kisses the floor. Reps are per leg.','QUADS, GLUTES'],
-['BULGARIAN SPLIT SQUAT',8,10,1,'Rear foot elevated on a chair. Reps are per leg.','QUADS, GLUTES'],
-['SHRIMP SQUAT',3,5,1,'Back foot held behind you, lower slowly. Reps are per leg.','QUADS, GLUTES'],
-['PISTOL SQUAT',3,5,1,'Single-leg squat, full depth. Reps are per leg.','QUADS, GLUTES']]},
-ha:{n:'HAMS',st:[
-['GLUTE BRIDGE',12,15,0,'Two legs, squeeze hard at the top.','HAMSTRINGS, GLUTES'],
-['SINGLE LEG GLUTE BRIDGE',8,10,1,'One leg, keep hips level. Reps are per leg.','HAMSTRINGS, GLUTES'],
-['SLIDER HAMSTRING CURL',8,10,0,'Heels on a towel or slider, hips up. Slow both ways.','HAMSTRINGS, GLUTES'],
-['NORDIC CURL NEGATIVE',3,5,0,'Anchor your feet, lower as slowly as you can.','HAMSTRINGS, GLUTES'],
-['FULL NORDIC CURL',3,5,0,'Lower under control and curl back up.','HAMSTRINGS, GLUTES']]},
-ca:{n:'CALF',st:[
-['DOUBLE LEG CALF RAISE',15,20,0,'On the floor, full range, pause at the top.','CALVES'],
-['DOUBLE LEG CALF RAISE ON STEP',15,20,0,'Heels drop below the step for a deep stretch.','CALVES'],
-['SINGLE LEG CALF RAISE',12,15,1,'Hold a wall for balance. Reps are per leg.','CALVES'],
-['SINGLE LEG CALF RAISE ON STEP',10,12,1,'Full stretch and a 1 second pause at the top. Reps are per leg.','CALVES'],
-['WEIGHTED SINGLE LEG CALF RAISE',8,12,1,'Hold a dumbbell or wear a backpack. Reps are per leg.','CALVES'],
-['SEATED CALF RAISE',15,20,0,'Knees bent (soleus), weight on thighs.','CALVES']]}};
-const RGM={};
-Object.values(REG).forEach(d=>d.x.forEach(x=>{if(typeof x!=='string'){TIP[x[0]]=x[5];RGM[x[0]]=x[6]}}));
-Object.values(CH).forEach(c=>c.st.forEach(x=>{TIP[x[0]]=x[4];RGM[x[0]]=x[5]}));
-const SPL={1:'push',3:'pull',5:'legs'},WK=['SUN','MON','TUE','WED','THU','FRI','SAT'],DAYOF={push:'MON',pull:'WED',legs:'FRI'};
-
 const SEG=[[0,1],[1,2],[1,3],[3,4],[1,5],[5,6],[2,7],[7,8],[2,9],[9,10]];
 /* colors */
 let _c,_ct=-1e9;
 const ACC=[['ORANGE','#ff7a1a'],['AMBER','#ffb000'],['GREEN','#3dff70'],['CYAN','#4de1ff'],['RED','#ff4a3d'],['WHITE','#ececec']];
 let ai=0;try{const v=+localStorage.getItem('asciifit.c');if(v>=0&&v<ACC.length)ai=v}catch(e){}
 const MD=['DARK','LIGHT','NIGHT'];let mi=0;try{const v=+localStorage.getItem('asciifit.m');if(v>=0&&v<3)mi=v}catch(e){}
-function paint(){const h=ACC[ai][1],n=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),s=document.documentElement.style,L=mi===1,N=mi===2,bg=L?[243,238,227]:[0,0,0],f=n.map(v=>Math.round(v*(L?.7:N?.5:1))),d=f.map((v,i)=>Math.round(L?(v*2+bg[i])/3:v*(N?.55:.66)));
+function paint(){const h=ACC[ai][1],n=[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),s=document.documentElement.style,L=mi===1,N=mi===2,bg=L?[243,238,227]:[0,0,0],f=L&&Math.max(...n)-Math.min(...n)<24?[8,8,8]:n.map(v=>Math.round(v*(L?.42:N?.5:1))),d=f.map((v,i)=>Math.round(L?(v*.85+bg[i]*.15):v*(N?.55:.66)));
 s.setProperty('--bg','rgb('+bg+')');s.setProperty('--fg','rgb('+f+')');s.setProperty('--dim','rgb('+d+')');s.setProperty('--grid','rgba('+f+','+(L?.14:N?.06:.09)+')');s.setProperty('color-scheme',L?'light':'dark');document.documentElement.dataset.m=mi;_ct=-1e9}
 paint();
 function col(t){if(t-_ct>400){const s=getComputedStyle(document.documentElement);_c={fg:s.getPropertyValue('--fg').trim(),dim:s.getPropertyValue('--dim').trim(),bg:s.getPropertyValue('--bg').trim()};_ct=t}return _c}
@@ -763,7 +718,6 @@ ${card('',`<span class="r">TODAY’S PLAN // ${DN[d.getDay()]}${dn?' // DONE':''
 ${st.sessions?'':card('FIRST TIME?','<span class="r">HIT START. THE FIGURE SHOWS THE MOVE, THE TIMER TELLS YOU WHEN TO REST. YOU CANNOT BREAK IT.</span>')}
 ${card('THIS WEEK',`<pre>${weekAscii(st)}</pre>${wkRow(st)}`)}
 <canvas id="hb" width="720" height="96" style="width:100%;height:36px;display:block"></canvas>
-${card('MY REGIMEN',`<span class="r">${SPL[d.getDay()]?'TODAY // '+REG[SPL[d.getDay()]].n:'TODAY // REST DAY'}</span><span class="r">PUSH MON // PULL WED // LEGS FRI</span>`,{btn:1,at:'data-a="reg"'})}
 <div class="lab">ALL PROGRAMS</div>
 ${Object.entries(PRE).map(([q,p],i)=>nc(i,p.n,p.ex,q,p.ex.length+' MOVES','~'+mins(p.ex.length,w,r)+' MIN')).join('')}
 ${cs.map((c,i)=>`<div class=\"row\"><div style=\"flex:1;min-width:0\">${nc(np+i,c.n,c.items.map(x=>x.e),'x'+i,c.items.length+' MOVES','CUSTOM')}</div><div style=\"flex:0 0 64px\">${card('','X',{btn:1,c:'mini',at:`data-a=\"cdel\" data-i=\"${i}\"`})}</div></div>`).join('')}
@@ -804,28 +758,36 @@ ${B.items.length?B.items.map((it,i)=>card(pad(i+1)+' '+EX[it.e].n,`<div class="s
 ${rc.length?`<div class="chips">${rc.map(n=>`<button class="chip" data-a="bnew" data-n="${ea(n)}">${ea(n)}</button>`).join('')}</div>`:''}
 <div class="gr">${card('','SAVE',{btn:1,c:'mini',at:'data-a="bsave"'})}${card('','START',{btn:1,c:'mini',at:'data-a="bgo"'})}</div>${tabs()}`)}
 
-const rgMk=(n,s,lo,hi,u,pl)=>({e:'~'+n,m:u==='s'?'t':'r',v:u==='s'?hi:lo,s,rg:lo+'-'+hi,pl:pl?1:0});
-function regItems(day,st){const g=st.reg||{};return REG[day].x.map(x=>{if(typeof x==='string'){const c=CH[x.slice(1)],i=Math.max(1,Math.min(c.st.length,g[x.slice(1)]||1)),q=c.st[i-1];return rgMk(q[0],3,q[1],q[2],'r',q[3])}return rgMk(x[0],x[1],x[2],x[3],x[4],0)})}
-const rgMin=(it,r)=>{const ns=it.reduce((q,i)=>q+i.s,0);return Math.max(1,Math.round((it.reduce((q,i)=>q+i.s*(i.m==='r'?i.v*3:i.v),0)+r*Math.max(0,ns-1)+5)/60))};
-function regimen(){
-cur=null;scrollTo(0,0);const st=load(),g=st.reg||{},r=st.rgRest||90,W=new Date().getDay(),nd=[0,1,2,3,4,5,6,7].find(i=>SPL[(W+i)%7]),ND=(W+nd)%7;
-view(`${topbar('REGIMEN')}
-${card('MY SPLIT',`<span class="r">${SPL[W]?'TODAY // '+WK[W]+' // '+REG[SPL[W]].n:'TODAY // '+WK[W]+' // REST DAY'}</span>${SPL[W]?'':'<span class="r">NEXT // '+WK[ND]+' // '+REG[SPL[ND]].n+'</span>'}<span class="r">MON PUSH // TUE REST // WED PULL // THU REST // FRI LEGS // SAT REST // SUN REST</span>`)}
-<div class="lab">PICK A DAY//</div>
-${Object.keys(REG).map((k,i)=>{const it=regItems(k,st);return nc(i,REG[k].n,it.map(x=>x.e),'rg:'+k,it.length+' MOVES',DAYOF[k]+' // ~'+rgMin(it,r)+' MIN')}).join('')}
-${card('LEG STAGES',Object.entries(CH).map(([c,h])=>{const i=Math.max(1,Math.min(h.st.length,g[c]||1)),q=h.st[i-1];return `<div class="cfg4"><span>${h.n}</span><button class="bk" data-a="rgs" data-c="${c}" data-d="-1">-</button><b>S${i}/${h.st.length}</b><button class="bk" data-a="rgs" data-c="${c}" data-d="1">+</button></div><span class="r">${q[0]} // 3 X ${q[1]}-${q[2]}${q[3]?' // PER LEG':''}</span>`}).join(''))}
-${card('REST BETWEEN SETS',`<div class="cfg4"><span>REST</span><button class="bk" data-a="rgr" data-d="-15">-</button><b>${r}s</b><button class="bk" data-a="rgr" data-d="15">+</button></div><span class="r">YOUR RULES SAY 1.5 TO 3 MIN.</span>`)}
-${card('RULES',`<span class="r">ALL SETS AT THE TOP OF THE RANGE = LEVEL UP. NEXT STAGE OR MORE LOAD.</span><span class="r">UNTIL THEN BEAT LAST TIME BY +1 REP PER SET.</span><span class="r">FORM FIRST. SHARP PAIN = SKIP THAT MOVE.</span><span class="r">DELOAD (HALF SETS) EVERY 6-8 WEEKS.</span>`)}
-${card('','&lt; BACK',{btn:1,c:'mini',at:'data-a="menu"'})}
-${tabs()}`)}
-
+/* ===== PRE-WORKOUT PREVIEW ===== */
+const PVA={
+ps:[['  o  ','=-|-=',' / \\ '],['=-o-=','  |  ',' / \\ ']],
+pl:[['=====','  |  ','  o  '],['==o==','=/|\\=','     ']],
+lg:[['  o  ',' /|\\ ',' / \\ '],['     ',' \\o/ ','_/ \\_']],
+co:[['     ','     ','o=-=-'],['  o  ',' /   ','/====']],
+ca:[['  o  ',' /|\\ ',' | | '],['\\ o /','  |  ',' / \\ ']]};
+function pvAnim(t){document.querySelectorAll('.pvx').forEach(el=>{const f=PVA[el.dataset.g]||PVA.ca,i=RM?0:Math.floor((t+ +el.dataset.o)/420)%f.length;if(el.dataset.i!==String(i)){el.dataset.i=i;el.textContent=f[i].join('\n')}})}
 function start(k){
-const st=load(),pl=k==='p'?genToday(st):null,w=st.work||30,r=pl?pl.rest:k.slice(0,3)==='rg:'?(st.rgRest||90):st.rest||10;let items;
-if(pl)items=pl.items;else if(k.slice(0,3)==='rg:')items=regItems(k.slice(3),st);else if(k==='b')items=B.items;else if(k[0]==='x')items=st.custom[+k.slice(1)].items;else items=PRE[k].ex.map(e=>({e,m:'t',v:w,s:1}));
+const st=load(),pl=k==='p'?genToday(st):null,w=st.work||30,r=pl?pl.rest:st.rest||10;let items;
+if(pl)items=pl.items;else if(k==='b')items=B.items;else if(k[0]==='x')items=st.custom[+k.slice(1)].items;else items=PRE[k].ex.map(e=>({e,m:'t',v:w,s:1}));
+const nm=pl?pl.n:k==='b'?'CUSTOM':k[0]==='x'?st.custom[+k.slice(1)].n:PRE[k].n,ns=items.reduce((q,i)=>q+i.s,0),rounds=Math.max(1,...items.map(x=>x.s)),
+min=Math.max(1,Math.round((items.reduce((q,i)=>q+i.s*(i.m==='r'?i.v*3:i.v),0)+r*Math.max(0,ns-1)+5)/60));
+const row=(it,i)=>{const n=EX[it.e].n,L=LIB.find(x=>x.n===n),g=PVA[L&&L.tg]?L.tg:'ca',d=it.v+(it.m==='r'?' REPS':'s')+' / ROUND';
+return `<div class="pvi"><pre class="pvx" data-g="${g}" data-o="${i*140}">${PVA[g][0].join('\n')}</pre><span class="pvm"><b class="pvn">${esc(n)}</b><span class="pvs">${d}</span></span><span class="pvk">${pad(i+1)}</span></div>`+(i<items.length-1?`<div class="pvr">┊ REST ${r}s</div>`:'')};
+cur=pvAnim;
+view(`${topbar('PLAN')}
+<div class="ex">${esc(nm)}</div><div class="exs">${items.length} MOVES // ${rounds} ROUNDS // ~${min} MIN</div>
+${card('TODAY’S LINEUP',`<div class="pv">${items.map(row).join('')}<div class="pvr" style="padding:8px 0 0 0;text-align:center;font-size:11px">↻ REPEAT ALL × ${rounds} ROUNDS</div></div>`)}
+${card('',`<span class="big">\uF04B START</span>`,{btn:1,c:'pri',at:`data-a="begin" data-k="${esc(k)}"`})}
+${card('',' &lt; BACK',{btn:1,c:'mini',at:'data-a="menu"'})}`)}
+function begin(k){
+const st=load(),pl=k==='p'?genToday(st):null,w=st.work||30,r=pl?pl.rest:st.rest||10;let items;
+if(pl)items=pl.items;else if(k==='b')items=B.items;else if(k[0]==='x')items=st.custom[+k.slice(1)].items;else items=PRE[k].ex.map(e=>({e,m:'t',v:w,s:1}));
 const steps=[{t:'rest',e:items[0].e,d:5,est:5,ready:1,i:0}];
-items.forEach((it,i)=>{for(let s=1;s<=it.s;s++){steps.push(it.m==='r'?{t:'work',e:it.e,reps:it.v,d:0,est:it.v*3,set:s,sets:it.s,i,rg:it.rg,pl:it.pl}:{t:'work',e:it.e,d:it.v,est:it.v,set:s,sets:it.s,i,rg:it.rg,pl:it.pl});
-if(!(i===items.length-1&&s===it.s)){const nx=s<it.s?it:items[i+1];steps.push({t:'rest',e:nx.e,d:r,est:r,i})}}});
-R={name:pl?pl.n:k.slice(0,3)==='rg:'?REG[k.slice(3)].n:k==='b'?'CUSTOM':k[0]==='x'?st.custom[+k.slice(1)].n:PRE[k].n,reps:0,n:items.length,steps,s:0,left:5000,last:performance.now(),paused:false,el:0,se:0,rc:0,workEl:0,done:0,total:steps.reduce((a,b)=>a+b.est,0)*1000,bp:99};
+const rounds=Math.max(1,...items.map(x=>x.s)),seqn=[];
+for(let q=1;q<=rounds;q++)items.forEach((it,i)=>{if(it.s>=q)seqn.push({it,i,q})});
+seqn.forEach((z,k)=>{const it=z.it,i=z.i;steps.push(it.m==='r'?{t:'work',e:it.e,reps:it.v,d:0,est:it.v*3,set:z.q,sets:rounds,i}:{t:'work',e:it.e,d:it.v,est:it.v,set:z.q,sets:rounds,i});
+if(k<seqn.length-1)steps.push({t:'rest',e:seqn[k+1].it.e,d:r,est:r,i})});
+R={name:pl?pl.n:k==='b'?'CUSTOM':k[0]==='x'?st.custom[+k.slice(1)].n:PRE[k].n,reps:0,n:items.length,steps,s:0,left:5000,last:performance.now(),paused:false,el:0,se:0,rc:0,workEl:0,done:0,total:steps.reduce((a,b)=>a+b.est,0)*1000,bp:99};
 view(`${topbar('LIVE')}
 <div class="ex" id="exn"></div><div class="exs" id="exs"></div>
 <section class="hud"><div class="tl" id="ttl"></div><i class="ico"></i><canvas id="cv" width="400" height="400"></canvas><div class="bl" id="bl"></div><i class="dot"></i></section>
@@ -837,7 +799,7 @@ ${card('PROGRESS',`<div class="st"><span>STEP</span><div class="seg" id="s1"><i>
 ${card('',`<div class="row"><button class="bk" id="pz" data-a="pause">PAUSE</button><button class="bk" data-a="skip">SKIP</button><button class="bk" data-a="learn">LEARN</button><button class="bk" data-a="quit">QUIT</button></div>`)}`);
 ctx();cur=tick;lock();beep(4);cue(steps[0])}
 
-function cue(S){const n=EX[S.e].n.toLowerCase();say(S.t==='work'?n+(S.reps?', '+(S.rg?S.rg.replace('-',' to '):S.reps)+' reps':', go'):S.ready?'Get ready. '+n:'Rest. Next, '+n)}
+function cue(S){const n=EX[S.e].n.toLowerCase();say(S.t==='work'?n+(S.reps?', '+S.reps+' reps':', go'):S.ready?'Get ready. '+n:'Rest. Next, '+n)}
 function next(){R.done+=R.steps[R.s].est*1000;R.s++;if(R.s>=R.steps.length){finish();return}const S=R.steps[R.s];R.left=S.d*1000;R.se=0;R.rc=0;R.bp=99;beep(S.t==='work'?2:3);cue(S)}
 
 function seq(t,X,pr){
@@ -855,10 +817,10 @@ if(!R.paused){R.el+=dt;R.se+=dt;if(S.t==='work')R.workEl+=dt;
 if(!S.reps){R.left-=dt;const sc=Math.ceil(R.left/1000);if(sc<=3&&sc>0&&sc!==R.bp){R.bp=sc;beep(0);say(String(sc))}
 if(R.left<=0){next();if(!R)return;S=R.steps[R.s]}}}
 const sec=Math.max(0,Math.ceil(R.left/1000)),sp=S.reps?Math.min(1,R.se/(S.est*1000)):1-R.left/(S.d*1000),tp=(R.done+(S.reps?sp*S.est*1000:S.est*1000-R.left))/R.total,ex=EX[S.e];
-if(S.t==='work'){set('ttl','');set('exn',ex.n);set('exs','MOVE '+pad(S.i+1)+'/'+pad(R.n)+'  //  SET '+S.set+'/'+S.sets+(S.reps?'  //  '+(S.rg||S.reps)+' REPS':S.rg?'  //  AIM '+S.rg+'S':'')+(S.pl?'  //  PER LEG':'')+(R.paused?'  //  PAUSED':''));set('bl','MOVE '+pad(S.i+1)+'/'+pad(R.n)+'\nSET '+S.set+'/'+S.sets);humanoid(cx,wbuf(),ex,R.el,{path:false,muscles:false})}
-else{set('ttl','');set('exn',S.ready?'GET READY':'REST');set('exs',(S.ready?'FIRST: ':'NEXT: ')+ex.n+(R.paused?'  //  PAUSED':''));set('bl','NEXT '+ex.n);breakCube(cx,t,.62+.2*Math.sin(R.el/1300))}
+if(S.t==='work'){set('ttl','');set('exn',ex.n);set('exs','MOVE '+pad(S.i+1)+'/'+pad(R.n)+'  //  ROUND '+S.set+'/'+S.sets+(S.reps?'  //  '+S.reps+' REPS':'')+(R.paused?'  //  PAUSED':''));set('bl','MOVE '+pad(S.i+1)+'/'+pad(R.n)+'\nROUND '+S.set+'/'+S.sets);cx.canvas.dataset.h=1;humanoid(cx,wbuf(),ex,R.el,{path:false,muscles:false})}
+else{set('ttl','');set('exn',S.ready?'GET READY':'REST');set('exs',(S.ready?'FIRST: ':'NEXT: ')+ex.n+(R.paused?'  //  PAUSED':''));set('bl','NEXT '+ex.n);cx.canvas.dataset.h=0;breakCube(cx,t,.62+.2*Math.sin(R.el/1300))}
 const big=!S.reps&&sec>0&&sec<=3?String(sec):S.t==='work'&&R.se<700?'GO':'';if(big){cx.save();cx.globalAlpha=.55;cx.fillStyle=col(t).fg;cx.font='bold 150px "JBM Nerd","JetBrains Mono",monospace';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(big,200,200);cx.restore()}
-set('tm',S.reps?(S.rg||S.reps)+' REPS':pad(Math.floor(sec/60))+':'+pad(sec%60));
+set('tm',S.reps?S.reps+' REPS':pad(Math.floor(sec/60))+':'+pad(sec%60));
 const rb=$('#rb');if(rb)rb.hidden=!S.reps;
 seg('s1',sp);seg('s2',tp);set('p1',Math.round(sp*100)+'%');set('p2',Math.round(tp*100)+'%');
 set('clk',clock());set('ab',asc(sp));seq(t,S,tp)}
@@ -887,6 +849,7 @@ app.addEventListener('click',e=>{
 if(booting){menu();return}
 const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
 if(a==='go')start(b.dataset.k);
+else if(a==='begin')begin(b.dataset.k);
 else if(a==='set'){const st=load(),f=b.dataset.f,lim=f==='work'?[10,120,30]:[5,60,10];st[f]=Math.max(lim[0],Math.min(lim[1],(st[f]||lim[2])+ +b.dataset.d));save(st);settings()}
 else if(a==='theme')theme();
 else if(a==='cfg')settings();
@@ -920,9 +883,6 @@ else if(a==='obf'){const h=+$('#oh').value,w=+$('#ow').value;O.h=h||'';O.w=w||''
 else if(a==='rvdone'){const v=+(($('#rv')||{}).value||3),st=load();st.adj=Math.max(-3,Math.min(3,(st.adj||0)+(3-v)*.5));st.fb=v;if(st.log&&st.log.length)st.log[st.log.length-1].f=v;save(st);menu()}
 else if(a==='rep'&&R){const S=R.steps[R.s];if(S.reps){R.reps+=S.reps-R.rc;R.rc=S.reps;{const q=load();q.pr=q.pr||{};const e=S.e;if(S.reps>(q.pr[e]||0)){q.pr[e]=S.reps;save(q)}}next()}}
 else if(a==='voice'){V=!V;try{localStorage.setItem('asciifit.v',V?1:0)}catch(e){}settings()}
-else if(a==='reg')regimen();
-else if(a==='rgs'){const st=load(),c=b.dataset.c,n=CH[c].st.length;st.reg=st.reg||{};st.reg[c]=Math.max(1,Math.min(n,(st.reg[c]||1)+ +b.dataset.d));save(st);regimen()}
-else if(a==='rgr'){const st=load();st.rgRest=Math.max(30,Math.min(180,(st.rgRest||90)+ +b.dataset.d));save(st);regimen()}
 else if(a==='stats')stats();
 else if(a==='info')info();
 else if(a==='ei')einfo(b.dataset.e);
