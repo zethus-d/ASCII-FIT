@@ -223,6 +223,18 @@ hipcircle:{n:'HIP CIRCLE',sp:3200,g:90,a:[47.2,14,47.2,24,57,50,39.2,36,52,50,55
 dbrow:{n:'DB ROW',sp:2400,g:90,a:[73,36,64,39,40,50,64,52,64,66,60,52,60,66,44,69,40,88,46,69,42,88],b:[73,36,64,39,40,50,56,48,60,56,60,52,60,66,44,69,40,88,46,69,42,88]}};
 const KW_NEW=[['HANGING','hangknee'],['PULL-UP','pullup'],['CHAIR DIP','dip'],['DUMBBELL ROW','dbrow'],['BARBELL ROW','dbrow'],['TOWEL ROW','row'],['CABLE ROW','row'],['FACE PULL','row'],['ROWING','rowm'],['LEG EXT','legext'],['LEG CURL','legcurl'],['LEG PRESS','legpress'],['TWIST','twist'],['BICYCLE','bicycle'],['PUSHDOWN','curl'],['DEADLIFT','hinge'],['SWING','hinge'],['ROMANIAN','hinge'],['SHOULDER PRESS','press'],['FLY','lateral'],['LATERAL','lateral'],['CHEST PRESS','bench'],['BENCH','bench'],['INCLINE','bench'],['LEG RAISE','legraise'],['HOLLOW','legraise'],['CALF','calf'],['CURL','curl'],['PULL','pull'],['SUPERMAN','superman'],['SNOW','superman'],['BOXING','boxing'],['BATTLE','waves'],['JUMP ROPE','rope'],['CRUNCH','situps'],['TUCK','highknees'],['WHEEL','plank'],['SPLIT','lunges']];
 KW.unshift(...KW_NEW);
+/* ===== extra moves for the plan: seated reverse fly, hammer curl (alternating), dead hang, wrist curls ===== */
+Object.assign(POSE,{
+rfly:{n:'REVERSE FLY',sp:2600,g:90,a:[62,39,55,46,40,62,56,60,57,73,58,60,59,73,58,62,59,87,60,62,61,87],b:[62,39,55,46,40,62,52,47,47,48,54,46,49,47,58,62,59,87,60,62,61,87]},
+hammer:{n:'HAMMER CURL',sp:3200,g:90,a:[50,14,50,24,50,50,49,38,49,52,52,38,52,52,47,69,46,88,53,69,54,88],b:[50,14,50,24,50,50,49,38,56,26,52,38,52,52,47,69,46,88,53,69,54,88],
+fn:ph=>{const L=14,l1=ph<.5?.5-.5*Math.cos(ph*4*Math.PI):0,l2=ph>=.5?.5-.5*Math.cos((ph-.5)*4*Math.PI):0,t1=l1*2.62,t2=l2*2.62;
+return[[50,14],[50,24],[50,50],[49,38],[49+L*Math.sin(t1),38+L*Math.cos(t1)],[52,38],[52+L*Math.sin(t2),38+L*Math.cos(t2)],[47,69],[46,88],[53,69],[54,88]]}},
+dhang:{n:'DEAD HANG',sp:4000,g:98,a:[50,22,50,32,50,58,48,17,47,2,52,17,53,2,49,74,48,90,51,74,52,90],b:[50,22,50,32,50,58,48,17,47,2,52,17,53,2,49,74,48,90,51,74,52,90],
+fn:ph=>{const s=Math.sin(ph*6.2832);return[[50,22],[50,32],[50,58],[48,17],[47,2],[52,17],[53,2],[49+s*1.2,74],[48+s*2.6,90],[51+s*1.2,74],[52+s*2.6,90]]}},
+wcurl:{n:'WRIST CURL',sp:1800,g:90,a:[51,30,48,40,42,62,53,53,67,60,55,52,69,59,62,62,63,87,64,62,65,87],b:[51,30,48,40,42,62,53,53,67,49,55,52,69,48,62,62,63,87,64,62,65,87]},
+rwcurl:{n:'REVERSE WRIST CURL',sp:1800,g:90,a:[51,30,48,40,42,62,53,53,67,60,55,52,69,59,62,62,63,87,64,62,65,87],b:[51,30,48,40,42,62,53,53,67,49,55,52,69,48,62,62,63,87,64,62,65,87]}});
+KW.unshift(['REVERSE WRIST CURL','rwcurl'],['WRIST CURL','wcurl'],['DEAD HANG','dhang'],['HAMMER CURL','hammer'],['REVERSE FLY','rfly']);
+
 const LIB=`PUSH-UPS|b|0|ps|r
 KNEE PUSH-UPS|h|0|ps|r
 DIAMOND PUSH-UPS|h|1|ps|r
@@ -294,7 +306,7 @@ const TS=[['FULL BODY','lg,ps,pl,lg,co'],['PUSH DAY','ps,ps,ps,co,ps'],['LEG DAY
 const rng=s=>()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};
 const GMN=['AUTO','LOSE FAT','BUILD MUSCLE','BALANCED'];
 const WU=[['~MARCH IN PLACE',30],['~ARM CIRCLES',30],['~HIP CIRCLES',30]],CD=[['~TOE TOUCH STRETCH',30],['~QUAD STRETCH',30],['~CHEST STRETCH',30]];
-function genToday(st){
+function genToday0(st){
 const p=st.prof,lv=p.lv,gym=p.loc==='gym',bmi=p.w/Math.pow(p.h/100,2),dw=new Date().getDay(),uw=bmi<18.5,gm=st.gm||0,bt=uw?0:gm===1?1:gm===2?0:gm===3?.5:Math.max(0,Math.min(1,(bmi-23)/4)),ub=bt>=1||(bt>0&&(dw*.618034%1)<bt),burn=bt>=.5,T=(ub?TB:TS)[dw],adj=Math.max(-3,Math.min(3,st.adj||0))-(T[2]?1.5:0),f=1+.1*adj;
 const rd=rng(Math.floor(Date.now()/864e5)*7919+lv*13+(gym?1:0)),used=new Set(),items=[],ok=x=>x.eq==='b'||x.eq===(gym?'g':'h'),picks=[];
 T[1].split(',').forEach(tg=>{
@@ -399,13 +411,14 @@ function hGlyphPass(c,buf,C,t){
  c.restore()
 }
 /* ===== PROPS (dumbbell, barbell, kettlebell, bench, chair, wall, pull-up bar, towel+door, cable, wheel, ropes) ===== */
-function hPr(N){return{db:/(BICEP|HAMMER) CURL|LATERAL RAISE|SHOULDER PRESS|INCLINE DB|CHEST FLY|DUMBBELL ROW|GOBLET/.test(N),one:/DUMBBELL ROW/.test(N),gob:/GOBLET/.test(N),
+function hPr(N){return{db:/(BICEP|HAMMER) CURL|REVERSE FLY|LATERAL RAISE|SHOULDER PRESS|INCLINE DB|CHEST FLY|DUMBBELL ROW|GOBLET/.test(N),one:/DUMBBELL ROW/.test(N),gob:/GOBLET/.test(N),
 bb:/BARBELL|BENCH PRESS|DEADLIFT/.test(N),sq:/BARBELL SQUAT/.test(N),kb:/KETTLEBELL/.test(N),bench:/BENCH PRESS|INCLINE|CHEST PRESS/.test(N),chair:/CHAIR DIP/.test(N),wall:/WALL SIT/.test(N),
-pbar:/PULL-UP|HANGING/.test(N),towel:/TOWEL ROW/.test(N),cab:/CABLE ROW|FACE PULL|ROWING/.test(N),down:/PULLDOWN|PUSHDOWN/.test(N),wheel:/AB WHEEL/.test(N),rope:/JUMP ROPE/.test(N),battle:/BATTLE ROPES/.test(N)}}
+pbar:/PULL-UP|HANGING|DEAD HANG/.test(N),seat:/SEATED|WRIST CURL/.test(N),end:/WRIST CURL/.test(N),towel:/TOWEL ROW/.test(N),cab:/CABLE ROW|FACE PULL|ROWING/.test(N),down:/PULLDOWN|PUSHDOWN/.test(N),wheel:/AB WHEEL/.test(N),rope:/JUMP ROPE/.test(N),battle:/BATTLE ROPES/.test(N)}}
 const hPc='#7fe3ff',hPa='#e0b15a';
 function hRect(bx,x,y,w,h,C,fill){bx.fillStyle=fill||'#122018';bx.strokeStyle=C.fg;bx.lineWidth=2;bx.beginPath();bx.rect(x,y,w,h);bx.fill();bx.stroke()}
 function hHandAvgY(ex){return(ex.a[9]+ex.b[9]+ex.a[13]+ex.b[13])/4}
 function hPropsBack(bx,PR,P,Q,cv,C,floorY,ex){bx.save();bx.lineCap='round';bx.lineJoin='round';bx.globalAlpha=.9;
+if(PR.seat){const y=Q[2][1]+15,x0=Q[2][0]-34,x1=Q[2][0]+22;hRect(bx,x0,y,x1-x0,12,C);bx.strokeStyle=C.fg;bx.lineWidth=4;bx.beginPath();bx.moveTo(x0+8,y+12);bx.lineTo(x0+8,floorY+4);bx.moveTo(x1-8,y+12);bx.lineTo(x1-8,floorY+4);bx.stroke()}
 if(PR.bench){const y=(Q[1][1]+Q[2][1])/2+26,x0=Q[0][0]-26,x1=Q[2][0]+22;hRect(bx,x0,y,x1-x0,13,C);bx.strokeStyle=C.fg;bx.lineWidth=4;bx.beginPath();bx.moveTo(x0+16,y+13);bx.lineTo(x0+16,floorY+4);bx.moveTo(x1-16,y+13);bx.lineTo(x1-16,floorY+4);bx.stroke()}
 if(PR.chair){const h=Q[4],x0=h[0]-58,x1=h[0]+10,y=h[1]+5;hRect(bx,x0,y,x1-x0,11,C);bx.strokeStyle=C.fg;bx.lineWidth=4;bx.beginPath();bx.moveTo(x0+6,y+11);bx.lineTo(x0+6,floorY+4);bx.moveTo(x1-6,y+11);bx.lineTo(x1-6,floorY+4);bx.moveTo(x0+1,y);bx.lineTo(x0+1,y-52);bx.stroke()}
 if(PR.wall){const x=Q[1][0]-30;bx.strokeStyle=C.fg;bx.lineWidth=5;bx.beginPath();bx.moveTo(x,14);bx.lineTo(x,floorY+5);bx.stroke();bx.lineWidth=1.5;bx.globalAlpha=.4;for(let y=26;y<floorY;y+=22){bx.beginPath();bx.moveTo(x,y);bx.lineTo(x-14,y+10);bx.stroke()}}
@@ -423,6 +436,7 @@ if(PR.towel){bx.strokeStyle=hO();bx.lineWidth=1.5;bx.setLineDash([5,5]);bx.begin
 if(PR.down){const p=cv([50,0]);bx.strokeStyle=hPc;bx.lineWidth=3;bx.globalAlpha=.95;bx.beginPath();bx.moveTo(p[0],p[1]+6);bx.lineTo(...mid);bx.stroke();bx.strokeStyle=C.fg;bx.lineWidth=6;bx.beginPath();bx.moveTo(mid[0]-26,mid[1]);bx.lineTo(mid[0]+26,mid[1]);bx.stroke()}
 bx.globalAlpha=1;
 if(PR.db){const hs=PR.gob?[mid]:PR.one?[Q[4]]:[Q[4],Q[6]],es=PR.gob?[hVec(Q[3],Q[4])]:PR.one?[hVec(Q[3],Q[4])]:[hVec(Q[3],Q[4]),hVec(Q[5],Q[6])];hs.forEach((h,i)=>hDumb(bx,h,PR.gob?[0,1]:es[i],C))}
+if(PR.end){[Q[4],Q[6]].forEach(h=>hPlate(bx,h,9,C))}
 if(PR.bb){const c=PR.sq?[Q[1][0]-14,Q[1][1]+4]:mid;hPlate(bx,c,17,C)}
 if(PR.kb){const c=[mid[0],mid[1]+13];bx.strokeStyle=C.fg;bx.lineWidth=4;bx.beginPath();bx.arc(c[0],c[1]-9,9,3.4,6.0);bx.stroke();bx.fillStyle='#15221a';bx.lineWidth=3;bx.beginPath();bx.arc(c[0],c[1],12,0,6.283);bx.fill();bx.stroke()}
 if(PR.wheel){hPlate(bx,[Q[4][0],Q[4][1]+8],12,C)}
@@ -727,7 +741,7 @@ function nart(t){if(t-naT<60)return;naT=t;for(const el of document.querySelector
 const esc=x=>String(x).replace(/[^A-Za-z0-9 ._-]/g,'');
 const FL=[['  ) ',' ) \\ ',' / ) (',' \\(_)/'],['  ( ',' ( \\ ',' ) ) \\',' \\(_)/']].map(a=>a.join('\n'));
 const BG=[['FIRST SET',s=>s.sessions>=1],['3 DAY STREAK',s=>s.best>=3],['7 DAY STREAK',s=>s.best>=7],['10 SESSIONS',s=>s.sessions>=10],['100 REPS',s=>s.reps>=100],['1000 REPS',s=>s.reps>=1000],['60 MIN TOTAL',s=>s.secs>=3600]];
-function tabs(){const T=[['IDLE','HOME','menu'],['STATS','STATS','stats'],['MOVES','MOVES','info'],['BUILD','BUILD','build'],['CONFIG','SET','cfg']];const IC=['\uF015','\uF080','\uF03A','\uF0AD','\uF013'];return '<nav class="nav">'+T.map((x,i)=>`<button data-a="${x[2]}"${scr===x[0]?' class="on"':''}><span style="font-size:17px;display:block;line-height:1.3">${IC[i]}</span>${x[1]}</button>`).join('')+'</nav>'}
+function tabs(){const T=[['IDLE','HOME','menu'],['STATS','STATS','stats'],['MOVES','MOVES','info'],['PLAN','PLAN','plan'],['BUILD','BUILD','build'],['CONFIG','SET','cfg']];const IC=['\uF015','\uF080','\uF03A','\uF017','\uF0AD','\uF013'];return '<nav class="nav">'+T.map((x,i)=>`<button data-a="${x[2]}"${scr===x[0]?' class="on"':''}><span style="font-size:17px;display:block;line-height:1.3">${IC[i]}</span>${x[1]}</button>`).join('')+'</nav>'}
 function weekAscii(st){const dn=new Set((st.log||[]).map(l=>l.d)),m=mon(),td=iso(new Date()),a=[],b=[],c=[];for(let i=0;i<7;i++){const x=new Date(m);x.setDate(m.getDate()+i);const q=iso(x);a.push(' '+'MTWTFSS'[i]+' ');b.push(dn.has(q)?'[#]':q===td?'[ ]':q>td?'[.]':'[-]');c.push(q===td?' ^ ':'   ')}return a.join(' ')+'\n'+b.join(' ')+'\n'+c.join(' ')}
 function menu(){
 booting=false;clearInterval(bootIv);unlock();R=null;if(!load().prof){onb();return}
@@ -797,7 +811,7 @@ if(pl)items=pl.all;else if(k==='b')items=B.items;else if(k[0]==='x')items=st.cus
 const main=items.filter(x=>!x.w&&!x.c),nm=pl?pl.n:k==='b'?'CUSTOM':k[0]==='x'?st.custom[+k.slice(1)].n:PRE[k].n,ns=main.reduce((q,i)=>q+i.s,0),rounds=Math.max(1,...main.map(x=>x.s)),
 min=pl?pl.min:Math.max(1,Math.round((items.reduce((q,i)=>q+i.s*(i.m==='r'?i.v*3:i.v),0)+r*Math.max(0,ns-1)+5)/60));
 const edge=(a,b)=>a.w||a.c||(b&&(b.w||b.c));
-const row=(it,i)=>{const n=EX[it.e].n,L=LIB.find(x=>x.n===n),g=PVA[L&&L.tg]?L.tg:'ca',tag=it.w?'WARM-UP // ':it.c?'COOL-DOWN // ':'',d=tag+it.v+(it.m==='r'?' REPS':'s')+(it.w||it.c?'':' / ROUND')+(it.ov>0?'  ↑'+it.ov:''),nx=items[i+1],canSw=pl&&!it.w&&!it.c&&it.o;
+const row=(it,i)=>{const n=EX[it.e].n,L=LIB.find(x=>x.n===n),g=PVA[L&&L.tg]?L.tg:'ca',tag=it.w?'WARM-UP // ':it.c?'COOL-DOWN // ':'',d=tag+(it.rg||it.v)+(it.m==='r'?' REPS':'s')+(it.w||it.c?'':' / ROUND')+(it.ov>0?'  ↑'+it.ov:''),nx=items[i+1],canSw=pl&&!it.w&&!it.c&&it.o;
 const last=!it.w&&!it.c&&(!nx||nx.c);
 return `<div class=\"pvi${canSw?' sw':''}\"><pre class=\"pvx\" data-g=\"${g}\" data-o=\"${i*140}\">${PVA[g][0].join('\n')}</pre><span class=\"pvm\"><b class=\"pvn\">${esc(n)}</b><span class=\"pvs\">${d}</span></span><span class=\"pvk\">${pad(i+1)}</span>${canSw?`<button class=\"bk\" data-a=\"swap\" data-n=\"${esc(it.o)}\" aria-label=\"swap exercise\">⇄</button>`:''}</div>`+(last?`<div class=\"pvr\" style=\"padding:8px 0 0 0;text-align:center;font-size:11px\">↻ REPEAT ALL × ${rounds} ROUNDS</div>`:'')+(nx?`<div class=\"pvr\">┊ REST ${edge(it,nx)?8:r}s</div>`:'')};
 cur=pvAnim;
@@ -924,6 +938,101 @@ else if(a==='goal'){const st=load();st.goal=Math.max(1,Math.min(7,(st.goal||4)+ 
 else if(a==='quit'&&R&&!b.dataset.c){b.dataset.c=1;b.textContent='SURE?';setTimeout(()=>{if(b.isConnected){b.textContent='QUIT';delete b.dataset.c}},2500)}
 else if(a==='quit'||a==='menu')menu()});
 app.addEventListener('input',e=>{if(e.target.id==='nm'){const st=load();st.name=e.target.value.replace(/[^A-Za-z0-9 ._-]/g,'').toUpperCase().slice(0,12);save(st)}});
+/* ===== MY PLAN (own PUSH/PULL/LEGS, whole workout repeated for N rounds, file export/import) ===== */
+const PD=['MON','TUE','WED','THU','FRI','SAT','SUN'],cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pnm=x=>String(x).toUpperCase().replace(/[^\p{L}\p{M}\p{N} ._+-]/gu,'').replace(/\s+/g,' ').trim().slice(0,28);
+const PLN=(n,lo,hi,m)=>({n,lo,hi,m:m||'r'});
+function pdef(){return{name:'MY PLAN',rounds:3,rest:60,days:{MON:'PUSH',TUE:'REST',WED:'PULL',THU:'REST',FRI:'LEGS',SAT:'REST',SUN:'REST'},day:{
+PUSH:[PLN('INCLINE PUSH UP',8,12),PLN('DEEP PUSH UP',8,12),PLN('DECLINE PUSH UP',8,12),PLN('FRONT RAISE',8,12),PLN('OVERHEAD TRICEP EXTENSION',8,12)],
+PULL:[PLN('PULL UP',8,12),PLN('SEATED REVERSE FLY',8,12),PLN('BICEP CURL',8,12),PLN('HAMMER CURL',8,12),PLN('DEAD HANG',20,40,'t'),PLN('WRIST CURL',8,12),PLN('REVERSE WRIST CURL',8,12)],
+LEGS:[PLN('SQUAT PROGRESSION',8,12),PLN('HAMSTRING PROGRESSION',8,12),PLN('CALF RAISE PROGRESSION',8,12),PLN('CRUNCH',8,12),PLN('LEG RAISE',8,12)]}}}
+function pcl(x){if(!x||typeof x!=='object')return null;const n=pnm(x.n||'');if(!n)return null;const m=x.m==='t'?'t':'r',a=m==='t'?[5,180]:[1,50];const lo=cl(Math.round(+x.lo)||a[0],a[0],a[1]);let hi=cl(Math.round(+x.hi)||lo,a[0],a[1]);if(hi<lo)hi=lo;return{n,lo,hi,m}}
+/* one exercise line: "NAME | 8-12", "NAME | 20-40 S", "NAME 8-12", "NAME 30S". Old "NAME | 3 | 8-12" and "NAME 3x8-12" still parse (sets are ignored) */
+function pex(l){let n,lo,hi,m='r',x;
+if(l.includes('|')){const a=l.split('|').map(z=>z.trim());if(a.length<2)return null;n=a[0];x=a[a.length-1].toUpperCase().match(/^(\d+)(?:\s*[-–]\s*(\d+))?\s*(S|SEC|SECS|SECONDS?|REPS?)?$/);if(!x)return null;lo=+x[1];hi=x[2]?+x[2]:lo;if(x[3]&&x[3][0]==='S')m='t'}
+else{x=l.toUpperCase().match(/^(.*?)[\s:,-]*(?:\d+\s*[X×]\s*)?(\d+)(?:\s*[-–]\s*(\d+))?\s*(S|SEC|SECS|SECONDS?|REPS?)?$/);if(!x)return null;n=x[1];lo=+x[2];hi=x[3]?+x[3]:lo;if(x[4]&&x[4][0]==='S')m='t'}
+return pcl({n,lo,hi,m})}
+function pfix(o){if(!o||typeof o!=='object'||!o.day||typeof o.day!=='object')return null;const p={name:pnm(o.name||'MY PLAN')||'MY PLAN',rounds:cl(Math.round(+o.rounds)||3,1,10),rest:cl(Math.round(+o.rest)||60,15,300),days:{},day:{}};
+for(const f in o.day){const k=pnm(f);if(!k||k==='REST'||!Array.isArray(o.day[f]))continue;p.day[k]=o.day[f].map(pcl).filter(Boolean)}
+if(!Object.keys(p.day).length)return null;
+PD.forEach(d=>{const v=pnm((o.days||{})[d]||'REST');p.days[d]=v!=='REST'&&p.day[v]?v:'REST'});return p}
+function t2p(t){t=String(t||'').trim();if(!t)return null;
+if(t[0]==='{'){try{const o=JSON.parse(t);return pfix(o.plan||o)}catch(e){return null}}
+const o={name:'MY PLAN',rounds:3,rest:60,days:{},day:{}};let cur=null;
+for(const raw of t.split(/\r?\n/)){const l=raw.trim();if(!l||l.startsWith('//'))continue;let m;
+if(m=l.match(/^#+\s*(.+)$/)){cur=pnm(m[1]);if(cur&&!o.day[cur])o.day[cur]=[];continue}
+if(m=l.match(/^PLAN\s*:\s*(.+)$/i)){o.name=pnm(m[1])||o.name;continue}
+if(m=l.match(/^ROUNDS?\s*:\s*(\d+)/i)){o.rounds=+m[1];continue}
+if(m=l.match(/^REST\s*:\s*(\d+)/i)){o.rest=+m[1];continue}
+if(m=l.match(/^(MON|TUE|WED|THU|FRI|SAT|SUN)[A-Z]*\s*:\s*(.+)$/i)){o.days[m[1].toUpperCase()]=m[2];continue}
+if(cur){const x=pex(l);if(x)o.day[cur].push(x)}}
+return pfix(o)}
+function p2t(p){let o='PLAN: '+p.name+'\nROUNDS: '+p.rounds+'\nREST: '+p.rest+'\n';PD.forEach(d=>{o+=d+': '+(p.days[d]||'REST')+'\n'});
+Object.keys(p.day).forEach(f=>{o+='\n# '+f+'\n';p.day[f].forEach(x=>{o+=x.n+' | '+x.lo+(x.hi>x.lo?'-'+x.hi:'')+(x.m==='t'?' S':'')+'\n'})});return o}
+/* today's session from the plan: whole workout once, repeated for p.rounds rounds. Rest day / no plan -> null */
+function planToday(st){const p=st.plan;if(!p)return null;const k=PD[(new Date().getDay()+6)%7],f=p.days[k],L=f&&f!=='REST'&&p.day[f];if(!L||!L.length)return null;
+const R0=p.rounds||3,items=L.map(x=>({e:'~'+x.n,m:x.m,v:x.lo,s:R0,rg:x.hi>x.lo?x.lo+'-'+x.hi:''})),rest=p.rest||60,ns=items.reduce((q,i)=>q+i.s,0),useWu=st.wu!==0,
+wu=useWu?WU.map(([e,v])=>({e,m:'t',v,s:1,w:1})):[],cd=useWu?CD.map(([e,v])=>({e,m:'t',v,s:1,c:1})):[],extra=wu.concat(cd).reduce((q,i)=>q+i.v+8,0),
+min=Math.max(1,Math.round((items.reduce((q,i)=>q+i.s*(i.m==='r'?i.v*3:i.v),0)+rest*Math.max(0,ns-1)+extra+5)/60));
+return{n:f+' // MY PLAN',items,all:[...wu,...items,...cd],ex:items.map(i=>i.e),rest,min,burn:false}}
+function genToday(st){const pt=planToday(st);if(pt)return pt;const g=genToday0(st);if(st.plan)g.n='OFF DAY // '+g.n;return g}
+/* UI */
+let PE=null;
+const pio=()=>card('FILES',`<span class="r">EXPORT SAVES YOUR PLAN AS A TEXT FILE YOU CAN EDIT. IMPORT TAKES THAT FILE (OR JSON). IMPORT REPLACES THE CURRENT PLAN.</span><div class="row"><button class="bk" data-a="p_exp">EXPORT</button><button class="bk" data-a="p_cp">COPY</button></div><div class="row"><button class="bk" data-a="p_imp">IMPORT</button><button class="bk" data-a="p_paste">PASTE</button></div><input type="file" id="pfi" accept=".txt,.md,.json,text/plain,application/json" hidden>`);
+function planView(keep){
+cur=null;const st=load(),p=st.plan,sy=window.scrollY;
+if(!p){view(`${topbar('PLAN')}
+${card('NO PLAN YET','<span class="r">PUT YOUR OWN PUSH / PULL / LEGS WITH REP RANGES. THE WHOLE WORKOUT RUNS ONCE, THEN REPEATS FOR THE ROUNDS YOU SET. TODAY’S PLAN ON HOME USES IT.</span>')}
+${card('','LOAD STARTER // PUSH PULL LEGS',{btn:1,c:'mini',at:'data-a="p_new"'})}
+${pio()}${tabs()}`);return}
+const fs=Object.keys(p.day),row=(f,x,i)=>{const rg=x.lo+(x.hi>x.lo?'-'+x.hi:'')+(x.m==='t'?'S':''),op=PE&&PE.f===f&&PE.i===i,head=`<button class="pr" data-a="p_open" data-f="${f}" data-i="${i}"><span>${pad(i+1)} ${x.n}</span><span>${rg}</span></button>`;
+if(!op)return head;const t=x.m==='t',u=t?'S':'';
+return `<div class="it">${head}
+<div class="cfg4"><span>${t?'FROM':'REP LOW'}</span><button class="bk" data-a="p_lo" data-f="${f}" data-i="${i}" data-d="-1">-</button><b>${x.lo}${u}</b><button class="bk" data-a="p_lo" data-f="${f}" data-i="${i}" data-d="1">+</button></div>
+<div class="cfg4"><span>${t?'TO':'REP HIGH'}</span><button class="bk" data-a="p_hi" data-f="${f}" data-i="${i}" data-d="-1">-</button><b>${x.hi}${u}</b><button class="bk" data-a="p_hi" data-f="${f}" data-i="${i}" data-d="1">+</button></div>
+<div class="row"><button class="bk" data-a="p_up" data-f="${f}" data-i="${i}">UP</button><button class="bk" data-a="p_dn" data-f="${f}" data-i="${i}">DOWN</button><button class="bk" data-a="p_m" data-f="${f}" data-i="${i}">${t?'TIME':'REPS'}</button><button class="bk" data-a="p_del" data-f="${f}" data-i="${i}">DEL</button></div></div>`};
+view(`${topbar('PLAN')}
+<div class="lab">WEEK//</div>
+${card(p.name,PD.map(d=>`<div class="opt"><span>${d}</span><button class="bk" data-a="p_wd" data-d="${d}">${p.days[d]}</button></div>`).join('')+`<div class="cfg4"><span>ROUNDS</span><button class="bk" data-a="p_rounds" data-d="-1">-</button><b>x${p.rounds}</b><button class="bk" data-a="p_rounds" data-d="1">+</button></div><div class="cfg4"><span>REST</span><button class="bk" data-a="p_rest" data-d="-15">-</button><b>${p.rest}s</b><button class="bk" data-a="p_rest" data-d="15">+</button></div><span class="r">TAP A DAY TO CHANGE ITS FOCUS. WHOLE WORKOUT x ROUNDS. REST = BREAK BETWEEN MOVES.</span>`)}
+${fs.map(f=>{const L=p.day[f];return `<div class="lab">${f}//</div>`+card(f+' // '+L.length+' MOVES',(L.length?L.map((x,i)=>row(f,x,i)).join(''):'<span class="r">EMPTY. ADD A MOVE BELOW.</span>')+`<div class="nadd"><input class="nf" data-pa="${f}" placeholder="NAME 8-12 OR NAME 30S" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done"><button class="nb" data-a="p_add" data-f="${f}">ADD</button></div><div class="row" style="justify-content:flex-end"><button class="bk" data-a="p_dd" data-f="${f}">DELETE DAY</button></div>`)}).join('')}
+<div class="lab">NEW DAY//</div>
+<div class="nadd"><input id="pdn" class="nf" placeholder="E.G. UPPER" maxlength="14" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done"><button class="nb" data-a="p_day">ADD</button></div>
+${pio()}${tabs()}`);
+if(keep)window.scrollTo(0,sy)}
+const pmut=fn=>{const st=load();if(!st.plan)return;fn(st.plan,st);save(st);planView(1)};
+const pfb=(b,t,o)=>{b.textContent=t;setTimeout(()=>{if(b.isConnected)b.textContent=o},1800)};
+function pimp(t){const p=t2p(t);if(!p)return 0;const st=load();st.plan=p;save(st);PE=null;planView();return 1}
+function pAdd(f,raw){raw=String(raw||'').trim();if(!raw)return;const x=pex(raw)||pcl({n:raw,lo:8,hi:12,m:'r'});if(!x)return;pmut(p=>{if(!p.day[f])return;p.day[f].push(x);PE={f,i:p.day[f].length-1}})}
+function pdAdd(){const i=$('#pdn'),n=pnm(i&&i.value||'');if(!n||n==='REST')return;pmut(p=>{if(!p.day[n])p.day[n]=[]})}
+app.addEventListener('click',e=>{
+if(booting)return;const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
+if(a==='plan'){planView();return}
+if(!a||a.slice(0,2)!=='p_')return;
+const f=b.dataset.f,i=+b.dataset.i,d=+b.dataset.d;
+switch(a){
+case'p_new':{const st=load();st.plan=pdef();save(st);planView();break}
+case'p_wd':pmut(p=>{const k=b.dataset.d,o=['REST',...Object.keys(p.day)],c=o.indexOf(p.days[k]);p.days[k]=o[(c+1)%o.length]});break;
+case'p_rounds':pmut(p=>{p.rounds=cl(p.rounds+d,1,10)});break;
+case'p_rest':pmut(p=>{p.rest=cl(p.rest+d,15,300)});break;
+case'p_open':PE=PE&&PE.f===f&&PE.i===i?null:{f,i};planView(1);break;
+case'p_lo':case'p_hi':pmut(p=>{const x=p.day[f][i],t=x.m==='t',q=t?5:1,r=t?[5,180]:[1,50];if(a==='p_lo'){x.lo=cl(x.lo+q*d,r[0],r[1]);if(x.hi<x.lo)x.hi=x.lo}else{x.hi=cl(x.hi+q*d,r[0],r[1]);if(x.lo>x.hi)x.lo=x.hi}});break;
+case'p_m':pmut(p=>{const x=p.day[f][i];x.m=x.m==='t'?'r':'t';x.lo=x.m==='t'?20:8;x.hi=x.m==='t'?40:12});break;
+case'p_up':case'p_dn':pmut(p=>{const L=p.day[f],j=a==='p_up'?i-1:i+1;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];PE={f,i:j}});break;
+case'p_del':pmut(p=>{p.day[f].splice(i,1);PE=null});break;
+case'p_add':{const inp=app.querySelector('[data-pa="'+f+'"]');pAdd(f,inp&&inp.value);break}
+case'p_day':pdAdd();break;
+case'p_dd':{if(!b.dataset.c){b.dataset.c=1;b.textContent='SURE?';setTimeout(()=>{if(b.isConnected){b.textContent='DELETE DAY';delete b.dataset.c}},2500);return}
+pmut(p=>{delete p.day[f];PD.forEach(k=>{if(p.days[k]===f)p.days[k]='REST'});PE=null});break}
+case'p_exp':{const st=load();if(!st.plan)return;const t=p2t(st.plan),fl=new File([t],'asciifit-plan-'+day()+'.txt',{type:'text/plain'});
+(async()=>{try{if(navigator.canShare&&navigator.canShare({files:[fl]})){await navigator.share({files:[fl]});return pfb(b,'DONE','EXPORT')}}catch(x){if(x&&x.name==='AbortError')return}
+try{const u=URL.createObjectURL(fl),l=document.createElement('a');l.href=u;l.download=fl.name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);pfb(b,'SAVED','EXPORT')}
+catch(x){try{await navigator.clipboard.writeText(t);pfb(b,'COPIED','EXPORT')}catch(y){pfb(b,'FAILED','EXPORT')}}})();break}
+case'p_cp':{const st=load();if(!st.plan)return;navigator.clipboard.writeText(p2t(st.plan)).then(()=>pfb(b,'COPIED','COPY'),()=>pfb(b,'FAILED','COPY'));break}
+case'p_imp':{const x=$('#pfi');x&&x.click();break}
+case'p_paste':(async()=>{try{const t=await navigator.clipboard.readText();if(!pimp(t))pfb(b,'BAD TEXT','PASTE')}catch(x){pfb(b,'NO ACCESS','PASTE')}})();break}});
+app.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const t=e.target;if(t.id==='pdn'){e.preventDefault();pdAdd()}else if(t.dataset&&t.dataset.pa){e.preventDefault();pAdd(t.dataset.pa,t.value)}});
+app.addEventListener('change',e=>{if(e.target.id!=='pfi'||!e.target.files[0])return;const r=new FileReader();r.onload=()=>{if(!pimp(r.result)){const b=app.querySelector('[data-a="p_imp"]');b&&pfb(b,'BAD FILE','IMPORT')}};r.readAsText(e.target.files[0]);e.target.value=''});
+
 /* circuit background */
 const BGc=document.createElement('canvas');BGc.id='bgc';document.body.insertBefore(BGc,document.body.firstChild);
 let BL=1;try{const v=localStorage.getItem('asciifit.b');if(v!==null&&+v>=0&&+v<=2)BL=+v}catch(e){}const bgop=()=>{BGc.style.opacity=[0,.28,.55][BL]};bgop();
